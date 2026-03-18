@@ -1,0 +1,1338 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Накладной — Blok Hisob</title>
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #f0f2f5;
+    padding: 15px;
+    margin:0;
+}
+h2 {
+    text-align: center;
+    font-size: 42px;
+    color: #2c3e50;
+    margin: 20px 0;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+}
+.tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 15px;
+}
+.tab {
+    flex: 1;
+    padding: 18px 5px;
+    font-size: 22px;
+    text-align: center;
+    background: #bdc3c7;
+    border-radius: 15px 15px 0 0;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-weight: bold;
+}
+.tab:hover { background: #95a5a6; }
+.tab.active {
+    background: #27ae60;
+    color: white;
+    box-shadow: 0 4px 8px rgba(39, 174, 96, 0.3);
+}
+.tab-content {
+    display: none;
+    background: white;
+    padding: 20px;
+    border-radius: 0 0 20px 20px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+}
+.tab-content.active { display: block; }
+.product {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 18px 0;
+    font-size: 22px;
+    padding: 15px;
+    border-radius: 10px;
+    background: #f8f9fa;
+    transition: all 0.3s;
+}
+.product:hover {
+    background: #e9ecef;
+    transform: translateX(5px);
+}
+.product-info {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+.product-name {
+    font-weight: bold;
+    color: #2c3e50;
+}
+.product-volume {
+    font-size: 18px;
+    color: #7f8c8d;
+    margin-top: 5px;
+}
+.product-price {
+    font-size: 18px;
+    color: #27ae60;
+    font-weight: bold;
+    margin-top: 5px;
+}
+.product input {
+    width: 110px;
+    height: 55px;
+    font-size: 26px;
+    text-align: center;
+    border-radius: 10px;
+    border: 2px solid #ccc;
+    transition: all 0.3s;
+}
+.product input:focus {
+    border-color: #27ae60;
+    box-shadow: 0 0 8px rgba(39, 174, 96, 0.3);
+    outline: none;
+}
+.buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 25px 0;
+}
+button {
+    padding: 18px 10px;
+    font-size: 20px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    position: relative;
+    overflow: hidden;
+    min-height: 90px;
+}
+button::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 5px;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.5);
+    opacity: 0;
+    border-radius: 100%;
+    transform: scale(1, 1) translate(-50%);
+    transform-origin: 50% 50%;
+}
+button:focus:not(:active)::after {
+    animation: ripple 1s ease-out;
+}
+@keyframes ripple {
+    0% {
+        transform: scale(0, 0);
+        opacity: 0.5;
+    }
+    20% {
+        transform: scale(25, 25);
+        opacity: 0.3;
+    }
+    100% {
+        opacity: 0;
+        transform: scale(40, 40);
+    }
+}
+button:active {
+    transform: scale(0.95);
+}
+.btn-green {
+    background: #27ae60;
+    color: white;
+}
+.btn-green:hover {
+    background: #2ecc71;
+    box-shadow: 0 4px 8px rgba(39, 174, 96, 0.3);
+}
+.btn-yellow {
+    background: #f39c12;
+    color: white;
+}
+.btn-yellow:hover {
+    background: #f1c40f;
+    box-shadow: 0 4px 8px rgba(243, 156, 18, 0.3);
+}
+.btn-red {
+    background: #e74c3c;
+    color: white;
+}
+.btn-red:hover {
+    background: #c0392b;
+    box-shadow: 0 4px 8px rgba(231, 76, 60, 0.3);
+}
+.btn-blue {
+    background: #3498db;
+    color: white;
+}
+.btn-blue:hover {
+    background: #2980b9;
+    box-shadow: 0 4px 8px rgba(52, 152, 219, 0.3);
+}
+.btn-icon {
+    font-size: 28px;
+    margin-bottom: 5px;
+}
+.btn-text {
+    font-size: 16px;
+    font-weight: 600;
+    text-align: center;
+    line-height: 1.2;
+}
+
+/* Modal oyna */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    animation: fadeIn 0.3s ease;
+}
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+.modal-content {
+    background-color: white;
+    margin: 5% auto;
+    padding: 0;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    animation: slideUp 0.4s ease;
+}
+@keyframes slideUp {
+    from { transform: translateY(50px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+.modal-header {
+    background: #27ae60;
+    color: white;
+    padding: 20px;
+    border-radius: 15px 15px 0 0;
+    text-align: center;
+}
+.modal-title {
+    font-size: 28px;
+    font-weight: bold;
+}
+.modal-body {
+    padding: 25px;
+}
+.nakladnoy-content {
+    font-family: monospace;
+    font-size: 18px;
+    white-space: pre-line;
+    text-align: left;
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 10px;
+    margin: 20px 0;
+    border: 1px solid #ddd;
+    max-height: 300px;
+    overflow-y: auto;
+}
+.modal-buttons {
+    display: flex;
+    gap: 15px;
+    margin-top: 25px;
+}
+.modal-btn {
+    padding: 18px;
+    font-size: 22px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: all 0.3s;
+}
+.modal-btn:active {
+    transform: scale(0.95);
+}
+.modal-btn-copy {
+    background: #3498db;
+    color: white;
+}
+.modal-btn-copy:hover {
+    background: #2980b9;
+    box-shadow: 0 4px 8px rgba(52, 152, 219, 0.3);
+}
+.close-modal {
+    position: absolute;
+    right: 20px;
+    top: 20px;
+    font-size: 30px;
+    cursor: pointer;
+    color: white;
+    background: rgba(0,0,0,0.2);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.close-modal:hover {
+    background: rgba(0,0,0,0.3);
+}
+
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #2ecc71;
+    color: white;
+    padding: 15px 25px;
+    border-radius: 10px;
+    font-weight: bold;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    transform: translateX(150%);
+    transition: transform 0.5s ease;
+    z-index: 1000;
+}
+.notification.show {
+    transform: translateX(0);
+}
+.notification.error {
+    background: #e74c3c;
+}
+
+.date-time {
+    color: #7f8c8d;
+    font-size: 16px;
+    margin: 10px 0 20px 0;
+    text-align: center;
+}
+.total-line {
+    font-weight: bold;
+    color: #e74c3c;
+    font-size: 22px;
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 2px solid #7f8c8d;
+    text-align: center;
+}
+.section-title {
+    font-weight: bold;
+    color: #2c3e50;
+    margin: 15px 0 10px 0;
+    font-size: 20px;
+    padding: 8px 15px;
+    background: #ecf0f1;
+    border-radius: 5px;
+    text-align: center;
+}
+.product-line {
+    margin: 10px 0;
+    padding-left: 10px;
+}
+.empty-message {
+    color: #7f8c8d;
+    font-style: italic;
+    text-align: center;
+    padding: 20px;
+    font-size: 18px;
+}
+
+/* Tarix modal */
+.history-list {
+    max-height: 400px;
+    overflow-y: auto;
+    margin: 20px 0;
+}
+.history-item {
+    background: #f8f9fa;
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 10px;
+    border-left: 5px solid #27ae60;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+.history-item:hover {
+    background: #e9ecef;
+    transform: translateX(5px);
+}
+.history-date {
+    font-weight: bold;
+    color: #2c3e50;
+    margin-bottom: 5px;
+}
+.history-total {
+    color: #27ae60;
+    font-weight: bold;
+    float: right;
+}
+.history-type {
+    color: #7f8c8d;
+    font-size: 14px;
+}
+
+/* Optimizatsiya tugmalari uchun */
+.opt-btn {
+    animation: pulse 2s infinite;
+}
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(39, 174, 96, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(39, 174, 96, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(39, 174, 96, 0); }
+}
+
+/* Copy fallback uchun */
+.copy-fallback {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.8);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+.copy-textarea {
+    width: 80%;
+    height: 300px;
+    padding: 20px;
+    font-size: 16px;
+    border-radius: 10px;
+    border: 2px solid #3498db;
+    background: white;
+    color: #333;
+    font-family: Arial, sans-serif;
+}
+/* Rasm uslubi */
+.product-image {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+    margin-right: 15px;
+    border-radius: 8px;
+    background: #fff;
+    padding: 5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+.product-image:hover {
+    transform: scale(1.1);
+}
+.product {
+    display: flex;
+    align-items: center;
+}
+
+/* Rasm modal oynasi */
+.image-modal {
+    display: none;
+    position: fixed;
+    z-index: 2001;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.9);
+    animation: fadeIn 0.3s ease;
+}
+.image-modal-content {
+    margin: auto;
+    display: block;
+    max-width: 90%;
+    max-height: 90%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    animation: zoom 0.3s ease;
+}
+@keyframes zoom {
+    from { transform: translate(-50%, -50%) scale(0.1); opacity: 0; }
+    to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
+.close-image-modal {
+    position: absolute;
+    right: 35px;
+    top: 15px;
+    color: #f1f1f1;
+    font-size: 40px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+    z-index: 2002;
+}
+.close-image-modal:hover {
+    color: #27ae60;
+    transform: scale(1.2);
+}
+</style>
+</head>
+<body>
+<h2>Накладной (Блок)</h2>
+<div class="tabs">
+    <div class="tab active" onclick="openTab('pet')">PET (1.5L)</div>
+    <div class="tab" onclick="openTab('rgb')">RGB (0.5L)</div>
+    <div class="tab" onclick="openTab('can')">CAN (0.45L)</div>
+</div>
+
+<!-- Rasm modal oynasi -->
+<div id="imageModal" class="image-modal" onclick="closeImageModal()">
+    <span class="close-image-modal" onclick="closeImageModal()">&times;</span>
+    <img class="image-modal-content" id="modalImage">
+</div>
+
+<!-- PET -->
+<div id="pet" class="tab-content active">
+    <div class="product">
+        <img class="product-image" src="https://i.ibb.co/bMzqRx18/sarbast-lite-pet.jpg" alt="Sarbast Lite PET" onclick="openImageModal(this.src)">
+        <div class="product-info">
+            <div class="product-name">Sarbast Lite PET</div>
+            <div class="product-volume">1.5 litr</div>
+            <div class="product-price">115.479 UZS/блок</div>
+        </div>
+        <input type="number" min="0" value="0" data-name="Sarbast Lite PET" data-sum="115479">
+    </div>
+    <div class="product">
+        <img class="product-image" src="https://i.ibb.co/S4kty86y/sarbast-original-pet.jpg" alt="Sarbast Original PET" onclick="openImageModal(this.src)">
+        <div class="product-info">
+            <div class="product-name">Sarbast Original PET</div>
+            <div class="product-volume">1.5 litr</div>
+            <div class="product-price">115.479 UZS/блок</div>
+        </div>
+        <input type="number" min="0" value="0" data-name="Sarbast Original PET" data-sum="115479">
+    </div>
+    <div class="product">
+        <img class="product-image" src="https://i.ibb.co/WN56c5DV/sarbast-special-pet.jpg" alt="Sarbast Special PET" onclick="openImageModal(this.src)">
+        <div class="product-info">
+            <div class="product-name">Sarbast Special PET</div>
+            <div class="product-volume">1.5 litr</div>
+            <div class="product-price">115.479 UZS/блок</div>
+        </div>
+        <input type="number" min="0" value="0" data-name="Sarbast Special PET" data-sum="115479">
+    </div>
+</div>
+
+<!-- RGB -->
+<div id="rgb" class="tab-content">
+    <div class="product">
+        <img class="product-image" src="https://i.ibb.co/Df36mfB5/sarbast-lite-rgb.jpg" alt="Sarbast Lite RGB" onclick="openImageModal(this.src)">
+        <div class="product-info">
+            <div class="product-name">Sarbast Lite RGB</div>
+            <div class="product-volume">0.5 litr</div>
+            <div class="product-price">218.077 UZS/блок</div>
+        </div>
+        <input type="number" min="0" value="0" data-name="Sarbast Lite RGB" data-sum="218077">
+    </div>
+    <div class="product">
+        <img class="product-image" src="https://i.ibb.co/CKB8Smqd/sarbast-original-rgb.jpg" alt="Sarbast Original RGB" onclick="openImageModal(this.src)">
+        <div class="product-info">
+            <div class="product-name">Sarbast Original RGB</div>
+            <div class="product-volume">0.5 litr</div>
+            <div class="product-price">218.077 UZS/блок</div>
+        </div>
+        <input type="number" min="0" value="0" data-name="Sarbast Original RGB" data-sum="218077">
+    </div>
+    <div class="product">
+        <img class="product-image" src="https://i.ibb.co/1Yh9rJzD/sarbast-special-rgb.jpg" alt="Sarbast Special RGB" onclick="openImageModal(this.src)">
+        <div class="product-info">
+            <div class="product-name">Sarbast Special RGB</div>
+            <div class="product-volume">0.5 litr</div>
+            <div class="product-price">234.855 UZS/блок</div>
+        </div>
+        <input type="number" min="0" value="0" data-name="Sarbast Special RGB" data-sum="234855">
+    </div>
+    <div class="product">
+        <img class="product-image" src="https://i.ibb.co/VWzV4mcZ/tuborg-green-rgb.jpg" alt="Tuborg Green RGB" onclick="openImageModal(this.src)">
+        <div class="product-info">
+            <div class="product-name">Tuborg Green RGB</div>
+            <div class="product-volume">0.5 litr</div>
+            <div class="product-price">268.307 UZS/блок</div>
+        </div>
+        <input type="number" min="0" value="0" data-name="Tuborg Green RGB" data-sum="268307">
+    </div>
+    <div class="product">
+        <img class="product-image" src="https://i.ibb.co/HfgDGFrM/tuborg-lite-rgb.jpg" alt="Tuborg Lite RGB" onclick="openImageModal(this.src)">
+        <div class="product-info">
+            <div class="product-name">Tuborg Lite RGB</div>
+            <div class="product-volume">0.45 litr</div>
+            <div class="product-price">268.307 UZS/блок</div>
+        </div>
+        <input type="number" min="0" value="0" data-name="Tuborg Lite RGB" data-sum="268307">
+    </div>
+    <div class="product">
+        <img class="product-image" src="https://i.ibb.co/hxSDrBCM/zatecky-gus-svetly-rgb.jpg" alt="Zatecky Gus Svetly RGB" onclick="openImageModal(this.src)">
+        <div class="product-info">
+            <div class="product-name">Zatecky Gus Svetly RGB</div>
+            <div class="product-volume">0.47 litr</div>
+            <div class="product-price">251.632 UZS/блок</div>
+        </div>
+        <input type="number" min="0" value="0" data-name="Zatecky Gus Svetly RGB" data-sum="251632">
+    </div>
+    <div class="product">
+        <img class="product-image" src="https://i.ibb.co/7J9mDKmr/zatecky-gus-exportniy-rgb.jpg" alt="Zatecky Gus Exportniy RGB" onclick="openImageModal(this.src)">
+        <div class="product-info">
+            <div class="product-name">Zatecky Gus Exportniy RGB</div>
+            <div class="product-volume">0.47 litr</div>
+            <div class="product-price">251.632 UZS/блок</div>
+        </div>
+        <input type="number" min="0" value="0" data-name="Zatecky Gus Exportniy RGB" data-sum="251632">
+    </div>
+    <div class="product">
+        <img class="product-image" src="https://i.ibb.co/vvjXWMB2/carlsberg-pilsner-rgb.jpg" alt="Carlsberg Pilsner RGB" onclick="openImageModal(this.src)">
+        <div class="product-info">
+            <div class="product-name">Carlsberg Pilsner RGB</div>
+            <div class="product-volume">0.45 litr</div>
+            <div class="product-price">301.580 UZS/блок</div>
+        </div>
+        <input type="number" min="0" value="0" data-name="Carlsberg Pilsner RGB" data-sum="301580">
+    </div>
+</div>
+
+<!-- CAN -->
+<div id="can" class="tab-content">
+    <div class="product">
+        <img class="product-image" src="https://i.ibb.co/przfWHxv/sarbast-lite-can.jpg" alt="Sarbast Lite CAN" onclick="openImageModal(this.src)">
+        <div class="product-info">
+            <div class="product-name">Sarbast Lite CAN</div>
+            <div class="product-volume">0.45 litr</div>
+            <div class="product-price">241.529 UZS/блок</div>
+        </div>
+        <input type="number" min="0" value="0" data-name="Sarbast Lite CAN" data-sum="241529">
+    </div>
+    <div class="product">
+        <img class="product-image" src="https://i.ibb.co/4HjJZkb/sarbast-original-can.jpg" alt="Sarbast Original CAN" onclick="openImageModal(this.src)">
+        <div class="product-info">
+            <div class="product-name">Sarbast Original CAN</div>
+            <div class="product-volume">0.45 litr</div>
+            <div class="product-price">241.529 UZS/блок</div>
+        </div>
+        <input type="number" min="0" value="0" data-name="Sarbast Original CAN" data-sum="241529">
+    </div>
+    <div class="product">
+        <img class="product-image" src="https://i.ibb.co/0yZjC2C3/sarbast-original-unfiltered-can.jpg" alt="Sarbast Original Unfiltered CAN" onclick="openImageModal(this.src)">
+        <div class="product-info">
+            <div class="product-name">Sarbast Original Unfiltered CAN</div>
+            <div class="product-volume">0.45 litr</div>
+            <div class="product-price">261.693 UZS/блок</div>
+        </div>
+        <input type="number" min="0" value="0" data-name="Sarbast Original Unfiltered CAN" data-sum="261693">
+    </div>
+    <div class="product">
+        <img class="product-image" src="https://i.ibb.co/1t3Y7bZt/sarbast-special-can.jpg" alt="Sarbast Special CAN" onclick="openImageModal(this.src)">
+        <div class="product-info">
+            <div class="product-name">Sarbast Special CAN</div>
+            <div class="product-volume">0.45 litr</div>
+            <div class="product-price">261.693 UZS/блок</div>
+        </div>
+        <input type="number" min="0" value="0" data-name="Sarbast Special CAN" data-sum="261693">
+    </div>
+    <div class="product">
+        <img class="product-image" src="https://i.ibb.co/hJJdrTK7/tuborg-green-can.jpg" alt="Tuborg Green CAN" onclick="openImageModal(this.src)">
+        <div class="product-info">
+            <div class="product-name">Tuborg Green CAN</div>
+            <div class="product-volume">0.45 litr</div>
+            <div class="product-price">321.968 UZS/блок</div>
+        </div>
+        <input type="number" min="0" value="0" data-name="Tuborg Green CAN" data-sum="321968">
+    </div>
+    <div class="product">
+        <img class="product-image" src="https://i.ibb.co/SXLx1T0S/tuborg-lite-can.jpg" alt="Tuborg Lite CAN" onclick="openImageModal(this.src)">
+        <div class="product-info">
+            <div class="product-name">Tuborg Lite CAN</div>
+            <div class="product-volume">0.45 litr</div>
+            <div class="product-price">321.968 UZS/блок</div>
+        </div>
+        <input type="number" min="0" value="0" data-name="Tuborg Lite CAN" data-sum="321968">
+    </div>
+    <div class="product">
+        <img class="product-image" src="https://i.ibb.co/KjyNrtH3/zatecky-gus-svetly-can.jpg" alt="Zatecky Gus Svetly CAN" onclick="openImageModal(this.src)">
+        <div class="product-info">
+            <div class="product-name">Zatecky Gus Svetly CAN</div>
+            <div class="product-volume">0.45 litr</div>
+            <div class="product-price">301.958 UZS/блок</div>
+        </div>
+        <input type="number" min="0" value="0" data-name="Zatecky Gus Svetly CAN" data-sum="301958">
+    </div>
+    <div class="product">
+        <img class="product-image" src="https://i.ibb.co/wNFhH1MQ/zatecky-gus-exportniy-can.jpg" alt="Zatecky Gus Exportniy CAN" onclick="openImageModal(this.src)">
+        <div class="product-info">
+            <div class="product-name">Zatecky Gus Exportniy CAN</div>
+            <div class="product-volume">0.45 litr</div>
+            <div class="product-price">301.958 UZS/блок</div>
+        </div>
+        <input type="number" min="0" value="0" data-name="Zatecky Gus Exportniy CAN" data-sum="301958">
+    </div>
+    <div class="product">
+        <img class="product-image" src="https://i.ibb.co/PsyfwQnh/zatecky-gus-krepkiy-can.jpg" alt="Zatecky Gus Krepkiy CAN" onclick="openImageModal(this.src)">
+        <div class="product-info">
+            <div class="product-name">Zatecky Gus Krepkiy CAN</div>
+            <div class="product-volume">0.45 litr</div>
+            <div class="product-price">301.958 UZS/блок</div>
+        </div>
+        <input type="number" min="0" value="0" data-name="Zatecky Gus Krepkiy CAN" data-sum="301958">
+    </div>
+    <div class="product">
+        <img class="product-image" src="https://i.ibb.co/sp7s7dP3/zatecky-gus-nefiltrovaniy-can.jpg" alt="Zatecky Gus Nefiltrovaniy CAN" onclick="openImageModal(this.src)">
+        <div class="product-info">
+            <div class="product-name">Zatecky Gus Nefiltrovaniy CAN</div>
+            <div class="product-volume">0.45 litr</div>
+            <div class="product-price">301.958 UZS/блок</div>
+        </div>
+        <input type="number" min="0" value="0" data-name="Zatecky Gus Nefiltrovaniy CAN" data-sum="301958">
+    </div>
+    <div class="product">
+        <img class="product-image" src="https://i.ibb.co/xS20VDMg/carlsberg-pilsner-can.jpg" alt="Carlsberg Pilsner CAN" onclick="openImageModal(this.src)">
+        <div class="product-info">
+            <div class="product-name">Carlsberg Pilsner CAN</div>
+            <div class="product-volume">0.45 litr</div>
+            <div class="product-price">361.896 UZS/блок</div>
+        </div>
+        <input type="number" min="0" value="0" data-name="Carlsberg Pilsner CAN" data-sum="361896">
+    </div>
+</div>
+
+<div class="buttons">
+    <button class="btn-green" onclick="showNakladnoyModal()">
+        <div class="btn-icon">📝</div>
+        <div class="btn-text">Накладной</div>
+    </button>
+    <button class="btn-yellow" onclick="showOptavikModal()">
+        <div class="btn-icon">🏷️</div>
+        <div class="btn-text">Оптовик (-10-5%)</div>
+    </button>
+    <button class="btn-blue" onclick="showHistoryModal()">
+        <div class="btn-icon">📚</div>
+        <div class="btn-text">История</div>
+    </button>
+    <button class="btn-red" onclick="resetAll()">
+        <div class="btn-icon">🔄</div>
+        <div class="btn-text">Сброс</div>
+    </button>
+</div>
+
+<!-- Nakladnoy modal oyna -->
+<div id="nakladnoyModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <div class="modal-title" id="modalTitle">НАКЛАДНОЙ</div>
+            <div class="close-modal" onclick="closeModal('nakladnoyModal')">×</div>
+        </div>
+        <div class="modal-body">
+            <div class="date-time" id="modalDateTime"></div>
+            <div class="nakladnoy-content" id="modalNakladnoyContent">
+                <div class="empty-message">Mahsulot tanlang va blok sonini kiriting...</div>
+            </div>
+            <div class="total-line" id="modalTotal"></div>
+            <div class="modal-buttons">
+                <button class="modal-btn modal-btn-copy" onclick="copyNakladnoy()">
+                    <span>📋</span> Копировать
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tarix modal oyna -->
+<div id="historyModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <div class="modal-title">История Накладных</div>
+            <div class="close-modal" onclick="closeModal('historyModal')">×</div>
+        </div>
+        <div class="modal-body">
+            <div id="historyContent" class="history-list">
+                <!-- Tarix bu yerda ko'rsatiladi -->
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-btn modal-btn-copy" onclick="clearHistory()">
+                    <span>🗑️</span> Очистить историю
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Fallback copy uchun -->
+<div id="copyFallback" class="copy-fallback">
+    <textarea id="copyTextarea" class="copy-textarea"></textarea>
+</div>
+
+<div class="notification" id="notification">
+    Natija nusxalandi!
+</div>
+
+<script>
+// O'zgaruvchilar
+const nakladnoyModal = document.getElementById('nakladnoyModal');
+const historyModal = document.getElementById('historyModal');
+const copyFallback = document.getElementById('copyFallback');
+const copyTextarea = document.getElementById('copyTextarea');
+const imageModal = document.getElementById('imageModal');
+const modalImage = document.getElementById('modalImage');
+let currentNakladnoyText = "";
+let nakladnoyHistory = [];
+
+// Dastur yuklanganda tarixni yuklash
+document.addEventListener('DOMContentLoaded', function() {
+    loadHistory();
+});
+
+function showNakladnoyModal() {
+    generateNakladnoy();
+    nakladnoyModal.style.display = "block";
+    document.getElementById('modalTitle').textContent = "НАКЛАДНОЙ";
+}
+
+function showOptavikModal() {
+    generateOptavik();
+    nakladnoyModal.style.display = "block";
+    document.getElementById('modalTitle').textContent = "НАКЛАДНОЙ (Оптовик -10-5%)";
+}
+
+function showHistoryModal() {
+    displayHistory();
+    historyModal.style.display = "block";
+}
+
+function closeModal(modalId) {
+    document.getElementById(modalId).style.display = "none";
+}
+
+function openTab(id) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    
+    const tabs = document.querySelectorAll('.tab');
+    for(let tab of tabs) {
+        if(tab.getAttribute('onclick') && tab.getAttribute('onclick').includes(id)) {
+            tab.classList.add('active');
+            break;
+        }
+    }
+    
+    document.getElementById(id).classList.add('active');
+}
+
+// Rasm modal oynasini ochish
+function openImageModal(src) {
+    modalImage.src = src;
+    imageModal.style.display = "block";
+}
+
+// Rasm modal oynasini yopish
+function closeImageModal() {
+    imageModal.style.display = "none";
+}
+
+// 0 ni yo'q qilish
+document.querySelectorAll('input').forEach(input => {
+    input.addEventListener('focus', function() {
+        if(this.value=="0") this.value="";
+    });
+    input.addEventListener('blur', function() {
+        if(this.value=="") this.value="0";
+    });
+    
+    input.addEventListener('keyup', function(e) {
+        if(e.key === 'Enter') {
+            showNakladnoyModal();
+        }
+    });
+});
+
+// Formatted number
+function formatNumber(n) {
+    return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+}
+
+// Sana va vaqtni olish
+function getCurrentDateTime() {
+    const now = new Date();
+    const day = String(now.getDate()).padStart(2, '0');
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const year = now.getFullYear();
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    
+    return `${day}.${month}.${year} ${hours}:${minutes}`;
+}
+
+// Nakladnoy yaratish (oddiy)
+function generateNakladnoy() {
+    const dateTime = getCurrentDateTime();
+    document.getElementById('modalDateTime').textContent = `Дата: ${dateTime}`;
+    
+    let content = "";
+    let total = 0;
+    let hasProducts = false;
+    let selectedProducts = [];
+    
+    // PET mahsulotlari
+    let petProducts = [];
+    let petTotal = 0;
+    
+    // RGB mahsulotlari
+    let rgbProducts = [];
+    let rgbTotal = 0;
+    
+    // CAN mahsulotlari
+    let canProducts = [];
+    let canTotal = 0;
+    
+    // Barcha mahsulotlarni saralash
+    document.querySelectorAll('input').forEach(i => {
+        let blocks = parseInt(i.value);
+        if(blocks > 0) {
+            hasProducts = true;
+            let sum = blocks * parseInt(i.dataset.sum);
+            let productInfo = {
+                name: i.dataset.name,
+                blocks: blocks,
+                price: parseInt(i.dataset.sum),
+                sum: sum
+            };
+            
+            // Tanlangan mahsulotlarni saqlash
+            selectedProducts.push({
+                name: i.dataset.name,
+                blocks: blocks,
+                price: parseInt(i.dataset.sum)
+            });
+            
+            // Tur bo'yicha saralash
+            if(i.dataset.name.includes("PET")) {
+                petProducts.push(productInfo);
+                petTotal += sum;
+            } else if(i.dataset.name.includes("RGB")) {
+                rgbProducts.push(productInfo);
+                rgbTotal += sum;
+            } else if(i.dataset.name.includes("CAN")) {
+                canProducts.push(productInfo);
+                canTotal += sum;
+            }
+            
+            total += sum;
+        }
+    });
+    
+    if(!hasProducts) {
+        content = "Hech qanday mahsulot tanlanmadi!\nBlok sonini kiriting.";
+        document.getElementById('modalTotal').textContent = "";
+    } else {
+        // PET qismini qo'shish
+        if(petProducts.length > 0) {
+            content += "=== PET ===\n";
+            petProducts.forEach(p => {
+                content += `${p.name}\n`;
+                content += `Блок: ${p.blocks} × ${formatNumber(p.price)} = ${formatNumber(p.sum)} UZS\n\n`;
+            });
+        }
+        
+        // RGB qismini qo'shish
+        if(rgbProducts.length > 0) {
+            content += "=== RGB ===\n";
+            rgbProducts.forEach(p => {
+                content += `${p.name}\n`;
+                content += `Блок: ${p.blocks} × ${formatNumber(p.price)} = ${formatNumber(p.sum)} UZS\n\n`;
+            });
+        }
+        
+        // CAN qismini qo'shish
+        if(canProducts.length > 0) {
+            content += "=== CAN ===\n";
+            canProducts.forEach(p => {
+                content += `${p.name}\n`;
+                content += `Блок: ${p.blocks} × ${formatNumber(p.price)} = ${formatNumber(p.sum)} UZS\n\n`;
+            });
+        }
+        
+        // Jami yozish
+        content += "---\n";
+        document.getElementById('modalTotal').textContent = `ИТОГО: ${formatNumber(total)} UZS`;
+    }
+    
+    // Modalni to'ldirish
+    document.getElementById('modalNakladnoyContent').innerText = content;
+    
+    // Tarixga saqlash
+    if(hasProducts) {
+        const nakladnoyData = {
+            id: Date.now(),
+            type: "Накладной",
+            date: dateTime,
+            content: content,
+            total: total,
+            products: selectedProducts,
+            fullText: `НАКЛАДНОЙ\n\nДата: ${dateTime}\n\n${content}\nИТОГО: ${formatNumber(total)} UZS`
+        };
+        
+        saveToHistory(nakladnoyData);
+        currentNakladnoyText = nakladnoyData.fullText;
+    } else {
+        currentNakladnoyText = "";
+    }
+}
+
+// Optavik yaratish (5% chegirma)
+function generateOptavik() {
+    const dateTime = getCurrentDateTime();
+    document.getElementById('modalDateTime').textContent = `Дата: ${dateTime}`;
+    
+    let content = "";
+    let total = 0;
+    let hasProducts = false;
+    let selectedProducts = [];
+    
+    // PET mahsulotlari
+    let petProducts = [];
+    let petTotal = 0;
+    
+    // RGB mahsulotlari
+    let rgbProducts = [];
+    let rgbTotal = 0;
+    
+    // CAN mahsulotlari
+    let canProducts = [];
+    let canTotal = 0;
+    
+    // Barcha mahsulotlarni saralash
+    document.querySelectorAll('input').forEach(i => {
+        let blocks = parseInt(i.value);
+        if(blocks > 0) {
+            hasProducts = true;
+            let sum = blocks * parseInt(i.dataset.sum);
+            let discount = 0;
+            
+            // Maxsus PET lar uchun 10%
+            // Qolgan Sarbast mahsulotlari uchun 5%
+            if (
+            i.dataset.name === "Sarbast Lite PET" ||
+            i.dataset.name === "Sarbast Original PET" ||
+            i.dataset.name === "Sarbast Special PET"
+            ) {
+            discount = Math.round(sum * 0.10); // 10%
+            sum = sum - discount;
+            }
+            else if(i.dataset.name.includes("Sarbast")) {
+            discount = Math.round(sum * 0.05); // 5%
+            sum = sum - discount;
+            }
+                let productInfo = {
+                name: i.dataset.name,
+                blocks: blocks,
+                price: parseInt(i.dataset.sum),
+                sum: sum,
+                discount: discount
+            };
+            
+            // Tanlangan mahsulotlarni saqlash
+            selectedProducts.push({
+                name: i.dataset.name,
+                blocks: blocks,
+                price: parseInt(i.dataset.sum),
+                discount: discount > 0
+            });
+            
+            // Tur bo'yicha saralash
+            if(i.dataset.name.includes("PET")) {
+                petProducts.push(productInfo);
+                petTotal += sum;
+            } else if(i.dataset.name.includes("RGB")) {
+                rgbProducts.push(productInfo);
+                rgbTotal += sum;
+            } else if(i.dataset.name.includes("CAN")) {
+                canProducts.push(productInfo);
+                canTotal += sum;
+            }
+            
+            total += sum;
+        }
+    });
+    
+    if(!hasProducts) {
+        content = "Hech qanday mahsulot tanlanmadi!\nBlok sonini kiriting.";
+        document.getElementById('modalTotal').textContent = "";
+    } else {
+        // PET qismini qo'shish
+        if(petProducts.length > 0) {
+            content += "=== PET ===\n";
+            petProducts.forEach(p => {
+                content += `${p.name}\n`;
+                if(p.discount > 0) {
+                    content += `Блок: ${p.blocks} × ${formatNumber(p.price)} = ${formatNumber(p.sum)} UZS (-10%)\n\n`;
+                } else {
+                    content += `Блок: ${p.blocks} × ${formatNumber(p.price)} = ${formatNumber(p.sum)} UZS\n\n`;
+                }
+            });
+        }
+        
+        // RGB qismini qo'shish
+        if(rgbProducts.length > 0) {
+            content += "=== RGB ===\n";
+            rgbProducts.forEach(p => {
+                content += `${p.name}\n`;
+                if(p.discount > 0) {
+                    content += `Блок: ${p.blocks} × ${formatNumber(p.price)} = ${formatNumber(p.sum)} UZS (-5%)\n\n`;
+                } else {
+                    content += `Блок: ${p.blocks} × ${formatNumber(p.price)} = ${formatNumber(p.sum)} UZS\n\n`;
+                }
+            });
+        }
+        
+        // CAN qismini qo'shish
+        if(canProducts.length > 0) {
+            content += "=== CAN ===\n";
+            canProducts.forEach(p => {
+                content += `${p.name}\n`;
+                if(p.discount > 0) {
+                    content += `Блок: ${p.blocks} × ${formatNumber(p.price)} = ${formatNumber(p.sum)} UZS (-5%)\n\n`;
+                } else {
+                    content += `Блок: ${p.blocks} × ${formatNumber(p.price)} = ${formatNumber(p.sum)} UZS\n\n`;
+                }
+            });
+        }
+        
+        // Jami yozish
+        content += "---\n";
+        document.getElementById('modalTotal').textContent = `ИТОГО: ${formatNumber(total)} UZS`;
+    }
+    
+    // Modalni to'ldirish
+    document.getElementById('modalNakladnoyContent').innerText = content;
+    
+    // Tarixga saqlash
+    if(hasProducts) {
+        const nakladnoyData = {
+            id: Date.now(),
+            type: "Оптовик (-5%)",
+            date: dateTime,
+            content: content,
+            total: total,
+            products: selectedProducts,
+            fullText: `НАКЛАДНОЙ (Оптовик -5%)\n\nДата: ${dateTime}\n\n${content}\nИТОГО: ${formatNumber(total)} UZS`
+        };
+        
+        saveToHistory(nakladnoyData);
+        currentNakladnoyText = nakladnoyData.fullText;
+    } else {
+        currentNakladnoyText = "";
+    }
+}
+
+// Tarixga saqlash
+function saveToHistory(nakladnoyData) {
+    nakladnoyHistory.unshift(nakladnoyData); // Yangisini boshiga qo'shish
+    
+    // Faqat oxirgi 50 ta saqlash
+    if (nakladnoyHistory.length > 50) {
+        nakladnoyHistory = nakladnoyHistory.slice(0, 50);
+    }
+    
+    // LocalStorage ga saqlash
+    localStorage.setItem('nakladnoyHistory', JSON.stringify(nakladnoyHistory));
+}
+
+// Tarixni yuklash
+function loadHistory() {
+    const savedHistory = localStorage.getItem('nakladnoyHistory');
+    if (savedHistory) {
+        nakladnoyHistory = JSON.parse(savedHistory);
+    }
+}
+
+// Tarixni ko'rsatish
+function displayHistory() {
+    const historyContent = document.getElementById('historyContent');
+    
+    if (nakladnoyHistory.length === 0) {
+        historyContent.innerHTML = '<div class="empty-message">История пуста</div>';
+        return;
+    }
+    
+    let html = '';
+    nakladnoyHistory.forEach(item => {
+        html += `
+            <div class="history-item" onclick="viewHistoryItem(${item.id})">
+                <div class="history-date">${item.date}</div>
+                <div class="history-type">${item.type}</div>
+                <div class="history-total">${formatNumber(item.total)} UZS</div>
+            </div>
+        `;
+    });
+    
+    historyContent.innerHTML = html;
+}
+
+// Tarix elementini ko'rish
+function viewHistoryItem(id) {
+    const item = nakladnoyHistory.find(i => i.id === id);
+    if (item) {
+        document.getElementById('modalTitle').textContent = item.type;
+        document.getElementById('modalDateTime').textContent = `Дата: ${item.date}`;
+        document.getElementById('modalNakladnoyContent').innerText = item.content;
+        document.getElementById('modalTotal').textContent = `ИТОГО: ${formatNumber(item.total)} UZS`;
+        currentNakladnoyText = item.fullText;
+        
+        closeModal('historyModal');
+        nakladnoyModal.style.display = "block";
+    }
+}
+
+// Tarixni tozalash
+function clearHistory() {
+    if (confirm("Вы уверены, что хотите очистить всю историю?")) {
+        nakladnoyHistory = [];
+        localStorage.removeItem('nakladnoyHistory');
+        displayHistory();
+        showNotification("История очищена!");
+    }
+}
+
+// Barcha maydonlarni tozalash
+function resetAll() {
+    if (confirm("Вы уверены, что хотите сбросить все данные?")) {
+        document.querySelectorAll('input').forEach(input => {
+            input.value = "0";
+        });
+        showNotification("Все данные сброшены!");
+    }
+}
+
+// Clipboard API yordamida nusxa olish (barcha brauzerlar uchun)
+function copyNakladnoy() {
+    if(!currentNakladnoyText || currentNakladnoyText.includes("Hech qanday mahsulot tanlanmadi")) {
+        showNotification("Nusxalash uchun ma'lumot yo'q!", true);
+        return;
+    }
+    
+    // Modern clipboard API ishlatish
+    if (navigator.clipboard && window.isSecureContext) {
+        // HTTPS yoki localhost da
+        navigator.clipboard.writeText(currentNakladnoyText).then(() => {
+            showNotification("Накладной nusxalandi!");
+        }).catch(err => {
+            // Agar modern API ishlamasa, fallback metodga o'tish
+            console.log("Modern clipboard API xatosi, fallback metod ishlatilmoqda:", err);
+            fallbackCopyText(currentNakladnoyText);
+        });
+    } else {
+        // HTTP yoki eski brauzerlar uchun fallback metod
+        fallbackCopyText(currentNakladnoyText);
+    }
+}
+
+// Fallback copy metodi (barcha brauzerlar uchun)
+function fallbackCopyText(text) {
+    // Textarea yaratish
+    copyTextarea.value = text;
+    copyTextarea.style.display = 'block';
+    copyFallback.style.display = 'flex';
+    
+    // Textareani tanlash
+    copyTextarea.select();
+    copyTextarea.setSelectionRange(0, 99999); // Mobile uchun
+    
+    try {
+        // Nusxa olish
+        const successful = document.execCommand('copy');
+        
+        if (successful) {
+            showNotification("Накладной nusxalandi!");
+        } else {
+            showNotification("Nusxalash amalga oshmadi!", true);
+        }
+    } catch (err) {
+        console.error('Fallback nusxalashda xatolik: ', err);
+        showNotification("Nusxalashda xatolik!", true);
+        
+        // Agar execCommand ham ishlamasa, foydalanuvchiga textni ko'rsatish
+        copyTextarea.focus();
+        showNotification("Текст выделен. Нажмите Ctrl+C для копирования.", false);
+        return;
+    }
+    
+    // Textareani yopish
+    setTimeout(() => {
+        copyFallback.style.display = 'none';
+        copyTextarea.style.display = 'none';
+    }, 1000);
+}
+
+// Textareani yopish uchun event
+copyFallback.addEventListener('click', function(e) {
+    if (e.target === copyFallback) {
+        copyFallback.style.display = 'none';
+    }
+});
+
+// Ogohlantirish
+function showNotification(message, isError = false) {
+    const notification = document.getElementById('notification');
+    notification.textContent = message;
+    
+    if (isError) {
+        notification.classList.add('error');
+    } else {
+        notification.classList.remove('error');
+    }
+    
+    notification.classList.add('show');
+    
+    setTimeout(() => {
+        notification.classList.remove('show');
+    }, 3000);
+}
+
+// Modal tashqarisini bosganda yopish
+window.onclick = function(event) {
+    if (event.target == nakladnoyModal) {
+        nakladnoyModal.style.display = "none";
+    }
+    if (event.target == historyModal) {
+        historyModal.style.display = "none";
+    }
+    if (event.target == imageModal) {
+        closeImageModal();
+    }
+}
+
+// ESC tugmasi bosilganda modalni yopish
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        nakladnoyModal.style.display = "none";
+        historyModal.style.display = "none";
+        copyFallback.style.display = "none";
+        closeImageModal();
+    }
+});
+</script>
+</body>
+</html>
